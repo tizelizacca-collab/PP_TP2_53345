@@ -1,0 +1,141 @@
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Scanner;
+
+/**
+ * EventoUniversitario compone una o más actividades.
+ * También agrega una sala, que puede existir independientemente del evento.
+ */
+public class EventoUniversitario {
+    private final String Id;
+    private String titulo;
+    private double costoBase;
+    private boolean gratuito;
+
+    /* Clases relacionadas  */
+    private Sala sala;
+    private List <Actividad> actividades;
+
+    private static int cantidadEventos;
+
+    /* Inicializador estático */
+    static {
+        cantidadEventos = 0;
+        System.out.println("Inicializador estático: se cargó la clase EventoUniversitario.");
+    }
+
+    public EventoUniversitario(String id, String nombre, double costo, boolean esGratuito) {
+        this.Id = id;
+        setTitulo(nombre); //se usa setTitulo en lugar de asignación directa porque hay validación de que no sea nulo.
+        this.gratuito = esGratuito;
+        this.costoBase = gratuito ? 0 : costo;
+        cantidadEventos++;
+
+        /* Aquí notar como se implementa la relación de composición como una relación estructural del tipo Todo-Parte fuerte .
+         * Si se destruye el evento se destruirán también sus actividades.
+        * Es decir, la vida útil de cada actividad está fuertemente ligada a la vida útil del evento. */
+        this.actividades = new ArrayList<>();
+    }
+
+    public EventoUniversitario(EventoUniversitario otroEvento) {
+        this(
+                otroEvento.Id + "-COPIA",
+                otroEvento.titulo,
+                otroEvento.costoBase,
+                otroEvento.gratuito
+        );
+    }
+
+    public String getId() {
+        return Id;
+    }
+
+    public String getTitulo() {
+        return titulo;
+    }
+
+    public void setTitulo(String nombre) {
+        if (nombre != null && !nombre.isBlank())
+            this.titulo = nombre;
+    }
+
+    public double calcularCostoEstimado() {
+        if (this.gratuito) {
+            return 0.0;
+        }
+
+        double costoTotal = costoBase;
+
+        for (Actividad actividad : actividades) {
+            costoTotal += actividad.calcularCostoMateriales();
+        }
+
+        return costoTotal * 1.21;
+    }
+    
+    public Sala getSala() {
+        return sala;
+    }
+
+    /* Implementa la agregación dinámica. Un evento se realiza en una sala, pero la relación Todo-Parte es débil.
+    * Si el evento no se realiza y el objeto que lo representa se destruye, la sala sigue existiendo y puede asignarse a otro evento. */
+    public void asignarSala(Sala sala) {
+            this.sala = sala;
+    }
+
+    /**
+     * Representa la composición: la actividad se crea para el evento y queda contenida por él.
+     * La relación Todo-Parte es fuerte: si el evento se destruye, las actividades también se destruyen.
+     */
+    public void crearActividad(int id, String titulo, int cupo, String tipoActividad) {
+
+        Scanner scanner = new Scanner(System.in);
+
+        switch (tipoActividad) {
+            case "charla":
+                System.out.print("Ingrese el nombre del disertante para la charla " + titulo + " :  ");
+                String disertante = scanner.nextLine();
+                Actividad charla = new Charla(id, titulo,  disertante,cupo);
+                this.actividades.add(charla);
+                break;
+            case "taller":
+                System.out.print("El taller " + titulo + " requiere el uso de Notebook? : S/N  ");
+                String respuesta = scanner.nextLine().trim().toLowerCase();
+                boolean requiereNotebook = false;
+                if (respuesta.equals("s") || respuesta.equals("si") || respuesta.equals("sí")) {
+                    requiereNotebook = true;
+                }
+                Actividad taller = new Taller(id, titulo,requiereNotebook, cupo);
+                this.actividades.add(taller);
+                break;
+            default:
+                System.out.println("Error: Tipo de actividad no reconocido.");
+        }
+    }
+
+     public List<Actividad>  getActividades() {
+         /* Se retorna una lista inmodificable para que mantener el encapsulamiento logrado con la composición
+          * y que no puedan agregar actividades desde afuera. */
+         return Collections.unmodifiableList(actividades);
+     }
+
+    public void  mostrarDatos() {
+        System.out.println("===============================================");
+        System.out.println("Evento codigo=" + Id);
+        System.out.println("TÍtulo=" + titulo);
+        System.out.println("Costo=" + this.calcularCostoEstimado());
+        System.out.println("Sala asignada: " + (sala != null ? sala.getNombre() : "Sin sala")+"\n");
+        System.out.println("Actividades:");
+        System.out.println("____________");
+        for (Actividad actividad : actividades) {
+            actividad.mostrarIdentificacion();
+            actividad.mostrarInscripciones();
+        }
+        System.out.println("===============================================");
+    }
+
+    public static int getCantidadEventos() {
+        return cantidadEventos;
+    }
+}
