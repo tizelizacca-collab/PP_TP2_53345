@@ -1,4 +1,10 @@
-public class Estudiante {
+package modelo;
+
+import java.io.Serializable;
+
+public class Estudiante implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     private String legajo;
     private String nombre;
 
@@ -7,21 +13,11 @@ public class Estudiante {
         this.nombre = nombre;
     }
 
-    public String getLegajo() {
-        return legajo;
-    }
+    public String getLegajo() { return legajo; }
+    public String getNombre() { return nombre; }
 
-    public void setLegajo(String legajo) {
-        this.legajo = legajo;
-    }
-    public String getNombre() {
-        return nombre;
-    }
-
-    public void setNombre(String nombre) {
-        if (nombre == null || nombre.isBlank()) {
-            return;
-        }
-        this.nombre = nombre;
+    @Override
+    public String toString() {
+        return "Estudiante: " + nombre + " (Legajo: " + legajo + ")";
     }
 }

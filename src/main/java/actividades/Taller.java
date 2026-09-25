@@ -1,36 +1,24 @@
-/**
- * Actividad concreta que representa un taller universitario.
- * Se ejemplifica el uso de herencia y polimorfismo, ya que Taller extiende de la clase abstracta Actividad
- * y proporciona implementaciones específicas para los métodos abstractos.
- */
+package actividades;
+
 public class Taller extends Actividad {
+    private static final long serialVersionUID = 1L;
+
     private boolean requiereNotebook;
 
-    public Taller(int id, String titulo, boolean requiereNotebook, int cupo) {
-        super(id, titulo, cupo);
-        this.requiereNotebook = requiereNotebook;
-    }
-
-    public boolean isRequiereNotebook() {
-        return requiereNotebook;
-    }
-
-    public void setRequiereNotebook(boolean requiereNotebook) {
+    public Taller(int id, String titulo, int cupoMaximo, boolean requiereNotebook) {
+        super(id, titulo, cupoMaximo);
         this.requiereNotebook = requiereNotebook;
     }
 
     @Override
     public double calcularCostoMateriales() {
-        /* Método polimórfico */
-        if (requiereNotebook) {
-            return 5000.0;
-        }
-        return 2000.0;
+        return requiereNotebook ? 500.0 : 300.0;
     }
 
     @Override
     public String getTipo() {
-        /* Método polimórfico */
-        return this.getClass().getSimpleName();
+        return "Taller";
     }
+
+    public boolean isRequiereNotebook() { return requiereNotebook; }
 }

@@ -1,106 +1,55 @@
-import java.time.LocalDate;
+package actividades;
+
+import excepciones.CupoExcedidoException;
+import excepciones.CupoMinimoNoAlcanzadoException;
+import modelo.Estudiante;
+import modelo.Inscripcion;
+
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Actividad es una clase abstracta que representa una actividad genérica dentro de un evento universitario.
- */
-public abstract  class Actividad {
+public abstract class Actividad implements Serializable {
+    private static final long serialVersionUID = 1L;
+
+    public static final int CUPO_MINIMO = 5;
+
     private int id;
     private String titulo;
     private int cupoMaximo;
+    protected List<Inscripcion> inscripciones;
 
-    /* Aquí evidenciar cómo se puede mantener en un único lugar el código que es común a cualquier tipo de actividad
-    * como por ejemplo el manejo de las inscripciones. Y luego en las clases especializadas manejar sólo el código
-    * que implementa las diferencias entre cada tipo concreto de actividad.  */
-    private List<Inscripcion>  inscripciones ;
-
-    /* Variables de clase */
-    public static final int CUPO_MINIMO ;
-
-    /* Inicializador estático */
-    static {
-        /* Variable de clase: se fija un cupo mínimo de 2 personas para cualquier actividad. */
-        CUPO_MINIMO = 2;
-        System.out.println("Inicializador estático: se cargó la clase Actividad.");
-    }
-
-    /* Hacer notar que aunque la clase sea abstracta  igual pueden proveerse constructores que serán
-    * activados desde las subclases con super() */
-    public Actividad(int id, String titulo, int cupo) {
+    public Actividad(int id, String titulo, int cupoMaximo) {
         this.id = id;
         this.titulo = titulo;
-        this.cupoMaximo = (cupo > CUPO_MINIMO) ? cupo : CUPO_MINIMO;
+        this.cupoMaximo = cupoMaximo;
         this.inscripciones = new ArrayList<>();
     }
 
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public String getTitulo() {
-        return titulo;
-    }
-
-    public void setTitulo(String titulo) {
-        if (titulo == null || titulo.isBlank()) {
-            return;
+    public void inscribir(Estudiante estudiante) throws CupoExcedidoException {
+        if (inscripciones.size() >= cupoMaximo) {
+            throw new CupoExcedidoException(
+                    "Cupo agotado para la actividad: " + titulo + " (Cupo máximo: " + cupoMaximo + ")"
+            );
         }
-        this.titulo = titulo;
+        Inscripcion nuevaInscripcion = new Inscripcion(estudiante);
+        inscripciones.add(nuevaInscripcion);
+        System.out.println("Inscripción exitosa para: " + estudiante.getNombre());
     }
 
-    public int getCupoMaximo() {
-        return cupoMaximo;
-    }
-
-    public void setCupoMaximo(int cupo) {
-        this.cupoMaximo = (cupo > CUPO_MINIMO) ? cupo : CUPO_MINIMO;
-    }
-
-    public Inscripcion inscribir(Estudiante estudiante) {
-        Inscripcion inscripcion = new Inscripcion(this, estudiante, LocalDate.now(), "REGISTRADA");
-        inscripciones.add( inscripcion);
-        return inscripcion;
-    }
-
-    public List<Inscripcion> getInscripciones() {
-        return inscripciones;
-    }
-
-    public void mostrarInscripciones() {
-        if (inscripciones.isEmpty()) {
-            System.out.println("  Sin inscripciones registradas.");
-            return;
-        }
-        System.out.println("   Inscripciones registradas:");
-        for (Inscripcion inscripcion : inscripciones) {
-            System.out.println("   " + inscripcion.getFecha()
-                                            +" - "+  inscripcion.getEstado()
-                                            + " - " + inscripcion.getEstudiante().getNombre()
-                                            + " (Legajo: " + inscripcion.getEstudiante().getLegajo() + ")");
+    public void validarCupoMinimo() throws CupoMinimoNoAlcanzadoException {
+        if (inscripciones.size() < CUPO_MINIMO) {
+            throw new CupoMinimoNoAlcanzadoException(
+                    "La actividad " + titulo + " no alcanza el cupo mínimo de " + CUPO_MINIMO + " inscritos. (" + inscripciones.size() + " registrados)"
+            );
         }
     }
 
-    /**
-     * Método final: las subclases no pueden redefinir la forma estándar de identificar una actividad.
-     */
-    public final void mostrarIdentificacion() {
-        /* Aquí se evidencia el polimorfismo: cada subclase implementa su propia versión de getTipo() . Si este método no estuviese
-        *  definido en la superclase, no se podría utilizar aquí. */
-        System.out.println("- " + getTipo() + ": " + titulo + " (id=" + id + ")" + " - Cupo máximo: " + cupoMaximo);
-    }
-
-    /**
-     * Método abstracto: cada tipo de actividad calcula su costo de materiales de manera diferente.
-     */
     public abstract double calcularCostoMateriales();
-
-    /**
-     * Método abstracto usado para evidenciar polimorfismo en la salida del programa.
-     */
     public abstract String getTipo();
+
+    public int getId() { return id; }
+    public String getTitulo() { return titulo; }
+    public int getCupoMaximo() { return cupoMaximo; }
+    public List<Inscripcion> getInscripciones() { return inscripciones; }
 }

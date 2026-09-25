@@ -1,117 +1,63 @@
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
+import actividades.Curso;
+import excepciones.CupoExcedidoException;
+import excepciones.CupoMinimoNoAlcanzadoException;
+import hilos.EnvioTicketsThread;
+import modelo.Estudiante;
+import modelo.EventoUniversitario;
+import modelo.Sala;
 
-/**
- * Clase principal desde la cual se crean y vinculan los objetos del modelo.
- * En este ejercicio se observa herencia y polimorfismo: el evento contiene Actividad,
- * pero en tiempo de ejecución se almacenan objetos Charla y Taller.
- */
 public class App {
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-        boolean continuar=true;
-        int id=1;
+        System.out.println("=== INTEGRACIÓN COMPLETA TP2 (EJERCICIOS 1 AL 4) ===");
 
-        /* Se crean estudiantes } */
-        List<Estudiante> estudiantes = new ArrayList<>();
+        EventoUniversitario evento = new EventoUniversitario("EVT-FINAL", "Expo Tecnología UTN 2026", 5000.0, false);
+        evento.asignarSala(new Sala(301, "Auditorio Central"));
 
-        System.out.println("REGISTRO DE ESTUDIANTES: ");
-        System.out.println("======================");
+        Curso curso = new Curso(101, "Programación Concurrente en Java", 10, 30);
+        evento.agregarActividad(curso);
 
-        while (continuar){
-            System.out.println("Ingese legajo del estudiante: ");
-            String legajo = scanner.nextLine();
-            System.out.println("Ingese nombre y apellido del estudiante: ");
-            String apenomb = scanner.nextLine();
-            estudiantes.add(new Estudiante(legajo, apenomb));
-            System.out.println("desea crear otro estudiante  S/N?");
-            String respuesta = scanner.nextLine().trim().toLowerCase();
-            continuar = (respuesta.equals("s") || respuesta.equals("si") || respuesta.equals("sí")) ? true : false;
-        };
+        // Creamos solo 2 estudiantes para probar el caso donde NO se alcanza el cupo mínimo (que es 5)
+        Estudiante e1 = new Estudiante("3001", "Lucas Benítez");
+        Estudiante e2 = new Estudiante("3002", "Sonia Giménez");
 
-        /* Se itera construyendo eventos */
-        System.out.println("\n\nREGISTRO DE EVENTOS: ");
-        System.out.println("====================");
-        continuar=true;
-        while(continuar) {
-            /* Se requieren datos por consola para construir un evento */
-            System.out.println("Ingese un titulo para el evento: ");
-            String titulo = scanner.nextLine();
-            System.out.println("Ingese el costo base:  ");
-            double costoBase = scanner.nextDouble();
-            scanner.nextLine(); //limpia el Enter pendiente
-            System.out.println("El evento tendra costo para los participantes S/N?");
-            String respuesta = scanner.nextLine().trim().toLowerCase();
-            boolean esGratuito= true;
-            if (respuesta.equals("s") || respuesta.equals("si") || respuesta.equals("sí")) {
-                esGratuito= false;
+        // --- PRUEBA DE EXCEPCIONES (EJERCICIOS 1 Y 3) ---
+        try {
+            System.out.println("\n--- Inscribiendo alumnos ---");
+            curso.inscribir(e1);
+            curso.inscribir(e2);
+            System.out.println("Alumnos inscritos correctamente.");
+
+            System.out.println("\n--- Validando Cupo Mínimo ---");
+            curso.validarCupoMinimo(); // Lanzará CupoMinimoNoAlcanzadoException
+
+        } catch (CupoExcedidoException e) {
+            System.out.println("[CATCH - CUPO EXCEDIDO]: " + e.getMessage());
+        } catch (CupoMinimoNoAlcanzadoException e) {
+            System.out.println("[CATCH - CUPO MÍNIMO]: " + e.getMessage());
+        } finally {
+            System.out.println("[FINALLY]: Control de inscripción y cupos finalizado.");
+        }
+
+        // --- PRUEBA DE PERSISTENCIA (EJERCICIO 1) ---
+        System.out.println("\n--- Persistencia de Datos ---");
+        if (evento.persistirEvento()) {
+            EventoUniversitario recuperado = EventoUniversitario.recuperarEvento("EVT-FINAL");
+            if (recuperado != null) {
+                recuperado.mostrarDatos();
             }
+        }
 
-            /* Se construye un objeto del tipo EventoUniversitario con el constructor de inicializacion de parametros */
-            EventoUniversitario evento = new EventoUniversitario(
-                    "EVT-" + id,
-                    titulo,
-                    costoBase,
-                    esGratuito
-            );
+        // --- PRUEBA DE CONCURRENCIA / HILOS (EJERCICIO 4) ---
+        System.out.println("\n--- Ejecución de Hilos (Envío de Tickets) ---");
+        EnvioTicketsThread hiloTickets = new EnvioTicketsThread(curso.getTitulo(), curso.getInscripciones());
+        hiloTickets.start();
 
-            /* Se crea una sala y se asigna al evento */
-            System.out.println("Ingese el nombre de la sala donde se realizará el evento: ");
-            String nombreSala= scanner.nextLine();
-            Sala sala = new Sala(id, nombreSala);
-            evento.asignarSala(sala);
+        try {
+            hiloTickets.join(); // Espera a que el hilo termine antes de finalizar el programa
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
-            /* Se crean las actividades del evento */
-            System.out.println("\n\nREGISTRO DE ACTIVIDADES PARA EL EVENTO " + evento.getTitulo());
-            System.out.println("================================================================");
-            int idActividad=1;
-            while (continuar){
-                System.out.println("Ingese el título de la actividad: ");
-                String tituloActividad= scanner.nextLine();
-                System.out.println("Ingese el cupo máximo de estudiantes admitidos para la actividad: ");
-                int cupo= scanner.nextInt();
-                scanner.nextLine(); //Se consume la linea.
-                System.out.println("La actividad es una Charla o un Taller?  (Charla/Taller)? ");
-                String tipo= scanner.nextLine().trim().toLowerCase();
-                evento.crearActividad(idActividad, tituloActividad, cupo, tipo);
-                System.out.println("Desea crear otra actividad para el  evento " + evento.getTitulo() + " S/N?");
-                respuesta = scanner.nextLine().trim().toLowerCase();
-                continuar  = (respuesta.equals("s") || respuesta.equals("si") || respuesta.equals("sí")) ? true : false;
-                ++idActividad;
-            }
-
-            /* Se inscriben estudiantes en actividades */
-            System.out.println("\n\nINSCRIPCION DE ESTUDIANTES EN ACTIVIDADES DEL  EVENTO " + evento.getTitulo());
-            System.out.println("===============================================================================");
-            continuar=true;
-            while (continuar){
-                System.out.println("Ingese legajo del estudiante a inscribir: ");
-                String legajo = scanner.nextLine();
-                System.out.println("Ingese id de la Actividad: ");
-                idActividad = scanner.nextInt();
-                scanner.nextLine(); // se consume linea
-                for (Estudiante estudiante: estudiantes){
-                    if (estudiante.getLegajo().equals(legajo)){
-                        evento.getActividades().get(--idActividad).inscribir(estudiante);
-                    }
-                }
-                System.out.println("Desea generar otra inscripción  S/N?");
-                respuesta = scanner.nextLine().trim().toLowerCase();
-                continuar  = (respuesta.equals("s") || respuesta.equals("si") || respuesta.equals("sí")) ? true : false;
-            }
-
-            /* Se muestran datos del evento */
-            System.out.println("\n\n DATOS DEL EVENTO");
-            evento.mostrarDatos();
-
-            /* Se consulta si se desea continuar creando eventos*/
-            System.out.println("\n\nDesea crear otro evento  S/N?");
-            respuesta = scanner.nextLine().trim().toLowerCase();
-            continuar  = (respuesta.equals("s") || respuesta.equals("si") || respuesta.equals("sí")) ? true : false;
-        } ;
-
-        /* Se muestra la cantidad total de eventos creados */;
-        System.out.println("\n\nTOTAL DE EVENTOS CREADOS: " + EventoUniversitario.getCantidadEventos());
+        System.out.println("\n=== TRABAJO PRÁCTICO 2 FINALIZADO CON ÉXITO ===");
     }
 }

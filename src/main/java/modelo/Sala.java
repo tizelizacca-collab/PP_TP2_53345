@@ -1,8 +1,10 @@
-/**
- * Sala existe de manera independiente al evento.
- * Por eso, en el modelo se usa como una agregación desde EventoUniversitario.
- */
-public class Sala {
+package modelo;
+
+import java.io.Serializable;
+
+public class Sala implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     private int id;
     private String nombre;
 
@@ -11,22 +13,6 @@ public class Sala {
         this.nombre = nombre;
     }
 
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public String getNombre() {
-        return nombre;
-    }
-
-    public void setNombre(String nombre) {
-        if (nombre == null || nombre.isBlank()) {
-            return;
-        }
-        this.nombre = nombre;
-    }
+    public int getId() { return id; }
+    public String getNombre() { return nombre; }
 }

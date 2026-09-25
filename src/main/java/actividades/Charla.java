@@ -1,36 +1,24 @@
-/**
- * Actividad concreta que representa una charla universitaria.
- * Se ejemplifica el uso de herencia y polimorfismo, ya que Charla extiende de la clase abstracta Actividad
- * y proporciona implementaciones específicas para los métodos abstractos.
- */
+package actividades;
+
 public class Charla extends Actividad {
+    private static final long serialVersionUID = 1L;
+
     private String disertante;
 
-    public Charla(int id, String titulo, String disertante, int cupo) {
-        super(id, titulo,cupo);
-        this.disertante = disertante;
-    }
-
-    public String getDisertante() {
-        return disertante;
-    }
-
-    public void setDisertante(String disertante) {
-        if (disertante == null || disertante.isBlank()) {
-            return;
-        }
+    public Charla(int id, String titulo, int cupoMaximo, String disertante) {
+        super(id, titulo, cupoMaximo);
         this.disertante = disertante;
     }
 
     @Override
     public double calcularCostoMateriales() {
-        /* Método polimórfico */
-        return 0.0;
+        return 150.0;
     }
 
     @Override
     public String getTipo() {
-        /* Método polimórfico */
-        return this.getClass().getSimpleName();
+        return "Charla";
     }
+
+    public String getDisertante() { return disertante; }
 }

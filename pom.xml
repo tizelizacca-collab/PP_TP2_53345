@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>ar.edu.utn.paradigmas</groupId>
-    <artifactId>tp1-ejercicio3-eventos</artifactId>
+    <artifactId>PP_TP2_53345</artifactId>
     <version>1.0.0</version>
     <name>TP1 Ejercicio 3 - Eventos Universitarios</name>
     <description>Proyecto Java 17 para ejercitar relaciones entre clases y objetos en POO.</description>
